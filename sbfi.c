@@ -1,5 +1,5 @@
 /**
- * Simple Brainfuck Compiler.
+ * Simple Brainfuck Interpreter.
  * This program interprets programs written in the esoteric language
  * brainfuck. 
  * Between implementation options are executing the program step by step
@@ -10,8 +10,15 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
-#include <regex.h>
+
+#if defined(_WIN64)
+	#warning "win64";
+#elif defined(_WIN32)
+	#warning "win32";
+#else
+	#warning "linux";
+#endif
+
 
 /**
  * @brief type for the memory of the program 
@@ -34,7 +41,6 @@ static char *curr_c, *last_c;
  */
 void print_console(){
 	char *c = &bf_console[0];
-	printf("Console:\n");
 	while(c < last_c){
 		printf("%c", *c);
 		++c;
@@ -58,16 +64,6 @@ void print_memory(){
 		++curr_p;
 	}
 	printf("\n");
-}
-
-/**
- * @brief Prints the command executed by the step by step mode.
- * @param c Command executed
- * 
- * 
- */
-void print_command(char c){
-	printf("Command executed: %c\n", c);
 }
 
 /**
@@ -109,11 +105,11 @@ int isCommand(char c){
 void print_program(char command, FILE *input){
 	system("clear");
 	print_instructions(input);
-	printf("\n");
+	printf("\nConsole output:\n");
 	print_console();
 	printf("\n");
 	if( isCommand(command) ){
-		print_command(command);
+		printf("Command executed: %c\n", command);
 		printf("\n");
 	}
 	print_memory();
@@ -121,10 +117,10 @@ void print_program(char command, FILE *input){
 }
 
 /**
- * @brief 
- * @param by_steps 
- * @param command 
- * @param input 
+ * @brief Executes the bf program 
+ * @param by_steps false if the program will be executed at once
+ * @param command current command
+ * @param input stream in case we have to execute a loop
  * 
  * 
  */
@@ -215,6 +211,34 @@ void execute_at_once(FILE *input){
 }
 
 /**
+ * @brief Executes the program all at once
+ * but only shows the console.
+ * @param input Stream with the bf program.
+ * 
+ * 
+ */
+void execute_console_only(FILE *input){
+	char command;
+	while((command = getc(input)) != EOF ){
+		execute_command(0, command, input);
+	}
+	print_console();
+}
+
+char* help(){
+	return "Simple Brainfuck Interpreter\nThis is an interpreter"
+	"for programs written in the esoteric language brainfuck.\nIf you "
+	"want to learn more about this language you can visit "
+	"http://es.wikipedia.org/wiki/Brainfuck.\n\n "
+	"How to use: To interpret a brainfuck program you have to "
+	"run this program with the following arguments:\n "
+	"./sfbi -[exec_option] name_of_file.bf \nWhere the options are:\n"
+	"s -> Executes the program step by step, outputs console and memory\n"
+	"a -> Executes the program all at once, outputs console and memory\n"
+	"c -> Executes the program at once, outputs console only\n\n"
+	"For example, try ./sbfi -s test.bf\n";
+}
+/**
  * @brief Reads the arguments and then executes the program
  * @param argc 
  * @param argv 
@@ -226,12 +250,10 @@ int main(int argc, char **argv) {
 	
 	char command, exec_option;
 	FILE *input;
-	///for now I'll just assume the input program only by files.
 	if (argc < 3){
-		//print help TODO make help
+		printf(help());
 		return -1;
 	}else{
-		//TODO need to validate arguments
 		exec_option = *++argv[1];
 		
 		input = fopen(argv[2],"r");
@@ -256,6 +278,9 @@ int main(int argc, char **argv) {
 		break;
 		case 'a':
 			execute_at_once(input);
+		break;
+		case 'c':
+			execute_console_only(input);
 		break;
 	}
 	return 0;

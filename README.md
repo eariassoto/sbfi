@@ -1,4 +1,4 @@
-sbfc
+sbfi
 ====
 
-Simple Brainfuck Compiler
+Simple Brainfuck Interpreter

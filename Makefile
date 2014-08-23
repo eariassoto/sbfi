@@ -1,10 +1,10 @@
 compile:
-	gcc -std=c99 -o sbfc sbfc.c
+	gcc -std=c99 -o sbfi sbfi.c
 
 teststep:
-	gcc -std=c99 -o sbfc sbfc.c
-	./sbfc -s test.bf
+	gcc -std=c99 -o sbfi sbfi.c
+	./sbfi -s test.bf
 
 testall:
-	gcc -std=c99 -o sbfc sbfc.c
-	./sbfc -a test.bf
+	gcc -std=c99 -o sbfi sbfi.c
+	./sbfi -a test.bf
