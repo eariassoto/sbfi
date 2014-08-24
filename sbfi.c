@@ -88,7 +88,7 @@ void print_instructions(FILE *input){
  * 
  * 
  */
-int isCommand(char c){
+int is_command(char c){
 	return (c == '>' || c == '<' || c == '+' || c == '-' || c == '.' || c == ',' || c == '[' || c == ']');
 }
 
@@ -107,8 +107,10 @@ void print_program(char command, FILE *input){
 	print_console();
 	printf("\n");
 	
-	printf("Command executed: %c\n", command);
-	printf("\n");
+	if(is_command(command)){
+		printf("Command executed: %c\n", command);
+		printf("\n");
+	}
 	
 	print_memory();
 	printf("\n");
@@ -153,6 +155,7 @@ void execute_command(char by_steps, char command, FILE *input)
 		++last_c;
 		break;
 	case ',':
+		printf("Enter a character: ");
 		*p = getchar();
 		break;
 	case '[':
@@ -190,7 +193,7 @@ void execute_by_steps(FILE *input){
 	
 	print_program('e', input);
 	while((command = getc(input)) != EOF ){
-		if( isCommand(command) )
+		if( is_command(command) )
 			execute_command(1, command, input);
 	}
 }
