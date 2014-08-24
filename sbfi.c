@@ -8,17 +8,14 @@
  * @author Emmanuel Arias
  * 
  */
-#include <stdio.h>
-#include <stdlib.h>
-
-#if defined(_WIN64)
-	#warning "win64";
-#elif defined(_WIN32)
-	#warning "win32";
+#if defined(_WIN32)
+	static char *CLEAR = "cls";
 #else
-	#warning "linux";
+	static char *CLEAR = "clear";
 #endif
 
+#include <stdio.h>
+#include <stdlib.h>
 
 /**
  * @brief type for the memory of the program 
@@ -103,15 +100,16 @@ int isCommand(char c){
  * 
  */
 void print_program(char command, FILE *input){
-	system("clear");
+	system(CLEAR);
 	print_instructions(input);
 	printf("\nConsole output:\n");
+	
 	print_console();
 	printf("\n");
-	if( isCommand(command) ){
-		printf("Command executed: %c\n", command);
-		printf("\n");
-	}
+	
+	printf("Command executed: %c\n", command);
+	printf("\n");
+	
 	print_memory();
 	printf("\n");
 }
@@ -192,7 +190,8 @@ void execute_by_steps(FILE *input){
 	
 	print_program('e', input);
 	while((command = getc(input)) != EOF ){
-		execute_command(1, command, input);
+		if( isCommand(command) )
+			execute_command(1, command, input);
 	}
 }
 
