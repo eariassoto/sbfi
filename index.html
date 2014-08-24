@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <title>sbfi by eariassoto</title>
+  </head>
+
+  <body>
+
+    <header>
+      <div class="container">
+        <h1>sbfi</h1>
+        <h2>Simple Brainfuck Compiler</h2>
+
+        <section id="downloads">
+          <a href="https://github.com/eariassoto/sbfi/zipball/master" class="btn">Download as .zip</a>
+          <a href="https://github.com/eariassoto/sbfi/tarball/master" class="btn">Download as .tar.gz</a>
+          <a href="https://github.com/eariassoto/sbfi" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
+      </div>
+    </header>
+
+    <div class="container">
+      <section id="main_content">
+        <h3>
+<a name="simple-brainfuck-interpreter" class="anchor" href="#simple-brainfuck-interpreter"><span class="octicon octicon-link"></span></a>Simple Brainfuck Interpreter</h3>
+
+<p>This is an interpreter for programs written in the esoteric language brainfuck.
+If you want to learn more about this language you can visit <a href="http://es.wikipedia.org/wiki/Brainfuck">http://es.wikipedia.org/wiki/Brainfuck</a></p>
+
+<h3>
+<a name="how-to-use" class="anchor" href="#how-to-use"><span class="octicon octicon-link"></span></a>How to use:</h3>
+
+<p>To compile the program you can use GCC both in Windows or Unix like OS. Compile as:</p>
+
+<pre><code>gcc -std=c99 -o sbfi sbfi.c
+</code></pre>
+
+<p>Or you can use the Makefile.</p>
+
+<p>To interpret a brainfuck program you have to run this program with the following arguments:</p>
+
+<pre><code>./sfbi -[exec_option] name_of_file.bf \nWhere the options are:
+s -&gt; Executes the program step by step, outputs console and memory.
+a -&gt; Executes the program all at once, outputs console and memory.
+c -&gt; Executes the program at once, outputs console only.
+</code></pre>
+
+<p>For example, try </p>
+
+<pre><code>./sbfi -s test.bf
+</code></pre>
+      </section>
+    </div>
+
+    
+  </body>
+</html>
