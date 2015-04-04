@@ -14,8 +14,13 @@
 	static char *CLEAR = "clear";
 #endif
 
+#define KRESET "\033[0m"
+#define KBOLD  "\033[1m"
+#define KRED   "\x1B[31m"
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /**
  * @brief type for the memory of the program 
@@ -24,12 +29,20 @@
  */
 typedef char cell;
 
-///Usually, the rules for compiling bf programs sets a maximum memory
+// Usually, the rules for compiling bf programs sets a maximum memory of 30000 bytes
 static cell bf_memory[30000];
 static cell *p, *last_p;
 
+// We need this array in order to store the console output. Because we are simulating
+// a "debugging" environment we need to store the output somewhere.
 static char bf_console[30000];
 static char *curr_c, *last_c;
+
+enum EXEC_MODE {
+   STEPS = 's',
+   CONSOLE_MEMORY = 'a',
+   CONSOLE_ONLY = 'c'
+};
 
 /**
  * @brief Prints the output of the program.
@@ -51,12 +64,12 @@ void print_console(){
  * 
  */
 void print_memory(){
-	printf("Memory Address\tValue\n");
+	printf(KBOLD"Memory Address\tValue\n"KRESET);
 	cell *curr_p = &bf_memory[0];
 	while(curr_p <= last_p){
 		printf("%p\t%d", curr_p, *curr_p);
 		if(curr_p == p)
-			printf("\t* pointer is here");
+			printf(KBOLD"\t* pointer is here"KRESET);
 		printf("\n");
 		++curr_p;
 	}
@@ -73,9 +86,13 @@ void print_instructions(FILE *input){
 	char c;
 	long pos = ftell(input); //save the current position
 	fseek(input, 0, SEEK_SET);
-	printf("Instructions: ");
+	printf(KBOLD"Instructions:"KRESET"\n");
 	while( (c = getc(input)) != EOF ){
-		printf("%c",c);
+		if(ftell(input) == pos+1){
+			printf(KBOLD KRED"%c"KRESET,c);
+		}else{
+			printf("%c",c);
+		}
 	}
 	fseek(input, pos, SEEK_SET); //restore the position
 	printf("\n");
@@ -102,7 +119,7 @@ int is_command(char c){
 void print_program(char command, FILE *input){
 	system(CLEAR);
 	print_instructions(input);
-	printf("\nConsole output:\n");
+	printf("\n" KBOLD "Console output:" KRESET "\n");
 	
 	print_console();
 	printf("\n");
@@ -117,23 +134,14 @@ void print_program(char command, FILE *input){
 }
 
 /**
- * @brief Executes the bf program 
- * @param by_steps false if the program will be executed at once
- * @param command current command
- * @param input stream in case we have to execute a loop
+ * @brief Executes one command
  * 
  * 
  */
-void execute_command(char by_steps, char command, FILE *input)
-{
-	char c, console_in;
+void execute_command(char command, FILE *input){
+	char c;
 	long pos;
-	
-	if(by_steps){
-	    printf("Press enter to execute next instruction (%c): ", command);
-	    scanf("%c", &console_in);
-	}
-	
+
 	switch(command) {
 	case '>':
 		++p;
@@ -150,7 +158,7 @@ void execute_command(char by_steps, char command, FILE *input)
 		--*p;
 		break;
 	case '.':
-		*curr_c = *p; //don't need to check limits.
+		*curr_c = *p;
 		++curr_c;
 		++last_c;
 		break;
@@ -159,7 +167,6 @@ void execute_command(char by_steps, char command, FILE *input)
 		*p = getchar();
 		break;
 	case '[':
-		pos = ftell(input);
 		if ((*p) == 0) {
 			int loopc = 0;
 			for(;;)
@@ -169,76 +176,72 @@ void execute_command(char by_steps, char command, FILE *input)
 				if (c == ']') loopc--;
 				if (c == '[') loopc++;
 			}
-		} else while((*p) != 0) {
-			fseek(input, pos, SEEK_SET);
-			c = getc(input);
-			while( c!=']' && c!=EOF) {
-				execute_command(by_steps, c,input);
+		}else{
+			break;
+		}
+	case ']':
+		if((*p) != 0){
+			pos = ftell(input)-1;
+			int loopc = 0;
+			for(;;)
+			{
+				fseek(input, --pos, SEEK_SET);
 				c = getc(input);
+				if (loopc == 0 && c == '[') break;
+				if (c == ']') loopc++;
+				if (c == '[') loopc--;
 			}
+		}else{
+			break;
 		}
 	}
-	if(by_steps)
-	    print_program(command, input);
 }
 
 /**
- * @brief Executes the program by steps.
- * @param input Stream with the bf program.
+ * @brief Executes the bf program 
  * 
  * 
  */
-void execute_by_steps(FILE *input){
+void execute_program(FILE *input, enum EXEC_MODE mode)
+{
 	char command;
-	
-	print_program('e', input);
-	while((command = getc(input)) != EOF ){
-		if( is_command(command) )
-			execute_command(1, command, input);
+	char console_in;
+	enum EXEC_MODE exec_mode = mode;
+	if(exec_mode == STEPS){
+		print_program(0, input);
 	}
-}
+	else{
+		system(CLEAR);
+	}
 
-/**
- * @brief Executes the program all at once.
- * @param input Stream with the bf program.
- * 
- * 
- */
-void execute_at_once(FILE *input){
-	char command;
 	while((command = getc(input)) != EOF ){
-		execute_command(0, command, input);
+		if( is_command(command) ){
+			if(exec_mode == STEPS){
+	    		printf("Press enter to execute next instruction [%c]: ", command);
+	    		scanf("%c", &console_in);
+			}
+			execute_command(command, input);
+			if(exec_mode == STEPS)
+			    print_program(command, input);
+		}		
 	}
-	print_program('e', input);
-}
 
-/**
- * @brief Executes the program all at once
- * but only shows the console.
- * @param input Stream with the bf program.
- * 
- * 
- */
-void execute_console_only(FILE *input){
-	char command;
-	while((command = getc(input)) != EOF ){
-		execute_command(0, command, input);
-	}
-	print_console();
+	if(exec_mode == CONSOLE_ONLY)
+		print_console();
+	else if(exec_mode == CONSOLE_MEMORY)
+		print_program(0, input);	
 }
 
 char* help(){
-	return "Simple Brainfuck Interpreter\nThis is an interpreter"
-	"for programs written in the esoteric language brainfuck.\nIf you "
-	"want to learn more about this language you can visit "
+	return "Simple Brainfuck Interpreter\nThis is an interpreter "
+	"for programs written in brainfuck.\nIf you "
+	"want to learn more about this language please visit "
 	"http://es.wikipedia.org/wiki/Brainfuck.\n\n "
-	"How to use: To interpret a brainfuck program you have to "
-	"run this program with the following arguments:\n "
-	"./sfbi -[exec_option] name_of_file.bf \nWhere the options are:\n"
-	"s -> Executes the program step by step, outputs console and memory\n"
-	"a -> Executes the program all at once, outputs console and memory\n"
-	"c -> Executes the program at once, outputs console only\n\n"
-	"For example, try ./sbfi -s test.bf\n";
+	"Synopsis\n\tsbfi OPTION NAME_OF_FILE\n"
+	"Description:\n\tRun a Brainfuck program according to OPTION:\n "
+	"\t-s Executes step by step, outputs console and memory\n"
+	"\t-a Executes all at once, outputs console and memory\n"
+	"\t-c Executes all once, outputs console only\n\n";
 }
 /**
  * @brief Reads the arguments and then executes the program
@@ -249,11 +252,11 @@ char* help(){
  * 
  */
 int main(int argc, char **argv) {
-	
 	char command, exec_option;
 	FILE *input;
-	if (argc < 3){
-		printf(help());
+	const char *arg[] = {"--help", "-h"};
+	if (strcmp(argv[1], arg[0])==0 || strcmp(argv[1], arg[1])==0){
+		printf("%s", help());
 		return -1;
 	}else{
 		exec_option = *++argv[1];
@@ -274,16 +277,6 @@ int main(int argc, char **argv) {
 	last_p = &bf_memory[0];
 	p      = &bf_memory[0];
 	
-	switch(exec_option){
-		case 's':
-			execute_by_steps(input);
-		break;
-		case 'a':
-			execute_at_once(input);
-		break;
-		case 'c':
-			execute_console_only(input);
-		break;
-	}
+	execute_program(input, exec_option);
 	return 0;
 }
