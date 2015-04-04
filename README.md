@@ -6,8 +6,8 @@ Simple Brainfuck Interpreter
 This is an interpreter for programs written in brainfuck.
 If you want to learn more about this language please visit http://es.wikipedia.org/wiki/Brainfuck.
 
- Synopsis
- ----------
+Synopsis
+-------------
  
 	sbfi OPTION NAME_OF_FILE
     
@@ -17,9 +17,7 @@ Description:
 	Run a Brainfuck program according to OPTION:
     
  	-s Executes step by step, outputs console and memory
-    
 	-a Executes all at once, outputs console and memory
-    
 	-c Executes all once, outputs console only
 
 Changes:
